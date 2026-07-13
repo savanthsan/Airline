@@ -1,6 +1,6 @@
 <?php
 
-include("../db.php");
+include(__DIR__ . '/../db.php');
 
 $f=$_POST['flight_no'];
 $s=$_POST['source'];

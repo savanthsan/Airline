@@ -1,5 +1,5 @@
 <?php
-include("../db.php");
+include(__DIR__ . '/../db.php');
 $result = mysqli_query($conn,"SELECT * FROM pilot");
 ?>
 

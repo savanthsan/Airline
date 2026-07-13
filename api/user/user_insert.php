@@ -1,6 +1,6 @@
 <?php
 
-include("../db.php");
+include(__DIR__ . '/../db.php');
 
 $name = $_POST['name'];
 $email = $_POST['email'];

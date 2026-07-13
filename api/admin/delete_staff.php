@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-include("../db.php");
+include(__DIR__ . '/../db.php');
 
 $type = "";
 $result = null;

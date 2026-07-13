@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("../db.php");
+include(__DIR__ . '/../db.php');
 
 // Check login
 if(!isset($_SESSION['user_id'])){

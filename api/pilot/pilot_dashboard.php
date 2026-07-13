@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("../db.php");
+include(__DIR__ . '/../db.php');
 
 $pilot_name = $_SESSION['pilot_name'];
 
