@@ -33,38 +33,38 @@ The codebase has been refactored from procedural queries into modular classes in
 This diagram outlines the interactions between different roles (Actors) and the system.
 
 ```mermaid
-leftClassDir
-rect "Airline Management System"
-  usecase "Register & Login" as UC1
-  usecase "Search Flights" as UC2
-  usecase "Book Ticket" as UC3
-  usecase "Cancel Ticket" as UC4
-  usecase "View Assigned Schedule" as UC5
-  usecase "Create Flight" as UC6
-  usecase "Assign Crew & Staff" as UC7
-  usecase "Update Flight Status" as UC8
-  usecase "Add / Delete Staff" as UC9
-end
+graph LR
+  subgraph Airline Management System
+    UC1([Register & Login])
+    UC2([Search Flights])
+    UC3([Book Ticket])
+    UC4([Cancel Ticket])
+    UC5([View Assigned Schedule])
+    UC6([Create Flight])
+    UC7([Assign Crew & Staff])
+    UC8([Update Flight Status])
+    UC9([Add / Delete Staff])
+  end
 
-Passenger --> UC1
-Passenger --> UC2
-Passenger --> UC3
-Passenger --> UC4
+  Passenger((Passenger)) --> UC1
+  Passenger --> UC2
+  Passenger --> UC3
+  Passenger --> UC4
 
-Pilot --> UC1
-Pilot --> UC5
+  Pilot((Pilot)) --> UC1
+  Pilot --> UC5
 
-Hostess --> UC1
-Hostess --> UC5
+  Hostess((Hostess)) --> UC1
+  Hostess --> UC5
 
-GroundStaff --> UC1
-GroundStaff --> UC5
+  GroundStaff((Ground Staff)) --> UC1
+  GroundStaff --> UC5
 
-Admin --> UC1
-Admin --> UC6
-Admin --> UC7
-Admin --> UC8
-Admin --> UC9
+  Admin((Admin)) --> UC1
+  Admin --> UC6
+  Admin --> UC7
+  Admin --> UC8
+  Admin --> UC9
 ```
 
 ---
