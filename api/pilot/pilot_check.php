@@ -5,14 +5,16 @@ include(__DIR__ . '/../db.php');
 $name = $_POST['name'];
 $password = $_POST['password'];
 
-$result = mysqli_query($conn,
-"SELECT * FROM pilot WHERE name='$name' AND password='$password'");
+// Use Pilot class for authentication (OOP Approach)
+$pilotObj = new Pilot($conn);
+$row = $pilotObj->login($name, $password);
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
 <link rel="stylesheet" href="../style.css">
+<title>Pilot Login</title>
 </head>
 
 <body>
@@ -23,24 +25,16 @@ $result = mysqli_query($conn,
 <div class="status-card">
 
 <?php
+if($row){
+    $_SESSION['pilot_name'] = $row['name'];
 
-if(mysqli_num_rows($result)>0){
-
-$row = mysqli_fetch_assoc($result);
-
-$_SESSION['pilot_name'] = $row['name'];
-
-echo "<h2 class='success'>Login Successful ✅</h2>";
-echo "<p>Welcome ".$row['name']."</p>";
-echo "<a href='pilot_dashboard.php' class='back-btn'>Dashboard</a>";
-
+    echo "<h2 class='success'>Login Successful ✅</h2>";
+    echo "<p>Welcome ".$row['name']."</p>";
+    echo "<a href='pilot_dashboard.php' class='back-btn'>Dashboard</a>";
 }else{
-
-echo "<h2 class='error'>Login Failed ❌</h2>";
-echo "<a href='pilot_login.php' class='back-btn'>Try Again</a>";
-
+    echo "<h2 class='error'>Login Failed ❌</h2>";
+    echo "<a href='pilot_login.php' class='back-btn'>Try Again</a>";
 }
-
 ?>
 
 </div>

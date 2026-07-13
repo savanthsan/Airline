@@ -5,8 +5,9 @@ include(__DIR__ . '/../db.php');
 $username = $_POST['username'];
 $password = $_POST['password'];
 
-$result = mysqli_query($conn,
-"SELECT * FROM admin WHERE username='$username' AND password='$password'");
+// Use Admin class for authentication (OOP Approach)
+$adminObj = new Admin($conn);
+$row = $adminObj->login($username, $password);
 ?>
 
 <!DOCTYPE html>
@@ -14,6 +15,7 @@ $result = mysqli_query($conn,
 
 <head>
 <link rel="stylesheet" href="../style.css">
+<title>Admin Login Status</title>
 </head>
 
 <body>
@@ -25,27 +27,19 @@ $result = mysqli_query($conn,
 <div class="status-card">
 
 <?php
+if($row){
+    $_SESSION['admin'] = $row['username'];
 
-if(mysqli_num_rows($result) > 0){
+    echo "<h2 class='success'>Login Successful ✅</h2>";
+    echo "<p>Welcome Admin: ".$row['username']."</p>";
 
-$row = mysqli_fetch_assoc($result);
-
-$_SESSION['admin'] = $row['username'];
-
-echo "<h2 class='success'>Login Successful ✅</h2>";
-echo "<p>Welcome Admin: ".$row['username']."</p>";
-
-echo "<br><a href='admin_dashboard.php' class='back-btn'>Go to Dashboard</a>";
-
+    echo "<br><a href='admin_dashboard.php' class='back-btn'>Go to Dashboard</a>";
 }else{
+    echo "<h2 class='error'>Login Failed ❌</h2>";
+    echo "<p>Invalid username or password</p>";
 
-echo "<h2 class='error'>Login Failed ❌</h2>";
-echo "<p>Invalid username or password</p>";
-
-echo "<br><a href='admin_login.php' class='back-btn'>Try Again</a>";
-
+    echo "<br><a href='admin_login.php' class='back-btn'>Try Again</a>";
 }
-
 ?>
 
 </div>
@@ -53,5 +47,4 @@ echo "<br><a href='admin_login.php' class='back-btn'>Try Again</a>";
 </div>
 
 </body>
-
 </html>

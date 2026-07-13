@@ -9,12 +9,8 @@ if(isset($_POST['add'])){
     $arrival_time = $_POST['arrival_time'];
     $total_seats = $_POST['total_seats'];
 
-    $sql = "INSERT INTO flight 
-    (flight_no, source, destination, departure_time, arrival_time, total_seats, available_seats)
-    VALUES 
-    ('$flight_no', '$source', '$destination', '$departure_time', '$arrival_time', '$total_seats', '$total_seats')";
-
-    if(mysqli_query($conn, $sql)){
+    $flightObj = new Flight($conn);
+    if($flightObj->add($flight_no, $source, $destination, $departure_time, $arrival_time, $total_seats)){
         header("Location: add_flight.php?success=1");
         exit();
     }else{
