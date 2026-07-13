@@ -34,22 +34,35 @@ This diagram outlines the interactions between different roles (Actors) and the 
 
 ```mermaid
 graph LR
-  subgraph Airline Management System
-    UC1([Register & Login])
+  subgraph User Authentication
+    UC1([Login / Authenticate])
+    UC_Reg([Register Account])
+  end
+
+  subgraph Passenger Operations
     UC2([Search Flights])
     UC3([Book Ticket])
     UC4([Cancel Ticket])
+    UC3_Promo([Apply Promo Code])
+    UC3_Seat([Select Specific Seat])
+  end
+
+  subgraph Staff Operations
     UC5([View Assigned Schedule])
+  end
+
+  subgraph Admin Operations
     UC6([Create Flight])
     UC7([Assign Crew & Staff])
     UC8([Update Flight Status])
     UC9([Add / Delete Staff])
+    UC8_Alert([Send Delay/Cancellation Alert])
   end
 
-  Passenger((Passenger)) --> UC1
-  Passenger --> UC2
+  Passenger((Passenger)) --> UC2
   Passenger --> UC3
   Passenger --> UC4
+  Passenger --> UC_Reg
 
   Pilot((Pilot)) --> UC1
   Pilot --> UC5
@@ -65,7 +78,26 @@ graph LR
   Admin --> UC7
   Admin --> UC8
   Admin --> UC9
+
+  %% Include Relationships (Base points to Included)
+  UC3 -. "<<include>>" .-> UC1
+  UC4 -. "<<include>>" .-> UC1
+  UC5 -. "<<include>>" .-> UC1
+  UC7 -. "<<include>>" .-> UC1
+  UC8 -. "<<include>>" .-> UC1
+  UC9 -. "<<include>>" .-> UC1
+
+  %% Extend Relationships (Extending points to Base)
+  UC3_Promo -. "<<extend>>" .-> UC3
+  UC3_Seat -. "<<extend>>" .-> UC3
+  UC8_Alert -. "<<extend>>" .-> UC8
 ```
+
+### 📚 Relationship Descriptions (for Lab Work)
+*   **`<<include>>`**: Represents mandatory helper use cases. For instance, **Book Ticket** or **Cancel Ticket** cannot be performed without first completing the **Login / Authenticate** usecase.
+*   **`<<extend>>`**: Represents optional/conditional behaviors. For example:
+    *   Applying a promo code or picking a specific seat optionally extends the booking process.
+    *   Sending alerts only extends the status update process if the flight is marked as **Delayed** or **Cancelled**.
 
 ---
 
