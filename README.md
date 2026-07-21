@@ -102,94 +102,109 @@ graph LR
 ---
 
 ### 2. Class Diagram
-Illustrates the structural inheritance, encapsulation, and relationships of the object-oriented design.
+Illustrates the structural inheritance, encapsulation, and relationships of the object-oriented design. Each class is represented in a distinct, self-contained box detailing its attributes (access modifiers & types) and functionalities (methods & parameters).
 
 ```mermaid
 classDiagram
     class Database {
-        -host: String
-        -user: String
-        -pass: String
-        -name: String
-        -port: int
-        -ssl_ca: String
+        -String host
+        -String user
+        -String pass
+        -String name
+        -int port
+        -String ssl_ca
+        -mysqli conn
         +__construct()
         +connect() mysqli
     }
 
     class User {
         <<abstract>>
-        #conn: mysqli
-        #table_name: String
-        #id_field: String
-        +__construct(db: mysqli)
-        +login(identifier: String, password: String) Array|false
+        #mysqli conn
+        #String table_name
+        #String id_field
+        +__construct(mysqli db)
+        +login(String identifier, String password) Array|false
         +getAll() mysqli_result
     }
 
     class Admin {
-        +__construct(db: mysqli)
+        +__construct(mysqli db)
     }
 
     class Passenger {
-        +__construct(db: mysqli)
-        +register(name: String, email: String, password: String) bool
+        +__construct(mysqli db)
+        +register(String name, String email, String password) bool
     }
 
     class Pilot {
-        +__construct(db: mysqli)
-        +add(name: String, password: String) bool
+        +__construct(mysqli db)
+        +add(String name, String password) bool
     }
 
     class Hostess {
-        +__construct(db: mysqli)
-        +add(name: String, password: String) bool
+        +__construct(mysqli db)
+        +add(String name, String password) bool
     }
 
     class AirportStaff {
-        +__construct(db: mysqli)
-        +add(name: String, password: String) bool
+        +__construct(mysqli db)
+        +add(String name, String password) bool
     }
 
     class Flight {
-        -conn: mysqli
-        +__construct(db: mysqli)
+        -mysqli conn
+        +__construct(mysqli db)
         +getAll() mysqli_result
-        +search(source: String, destination: String) mysqli_result
-        +getById(flight_id: int) Array
-        +add(flight_no: String, source: String, destination: String, dep: Time, arr: Time, seats: int) bool
-        +updateStatus(flight_id: int, status: String) bool
-        +updateSeats(flight_id: int, change: int) bool
+        +search(String source, String destination) mysqli_result
+        +getById(int flight_id) Array
+        +add(String flight_no, String source, String destination, Time departure_time, Time arrival_time, int total_seats) bool
+        +updateStatus(int flight_id, String status) bool
+        +updateSeats(int flight_id, int change) bool
     }
 
     class Booking {
-        -conn: mysqli
-        +__construct(db: mysqli)
-        +getByPassenger(passenger_id: int) mysqli_result
-        +getDetails(booking_id: int, passenger_id: int) Array
-        +book(passenger_id: int, flight_id: int, code: String, seat: String) bool
-        +cancel(booking_id: int, passenger_id: int) bool
+        -mysqli conn
+        +__construct(mysqli db)
+        +getByPassenger(int passenger_id) mysqli_result
+        +getDetails(int booking_id, int passenger_id) Array
+        +book(int passenger_id, int flight_id, String booking_code, String seat_no) bool
+        +cancel(int booking_id, int passenger_id) bool
     }
 
     class Schedule {
-        -conn: mysqli
-        +__construct(db: mysqli)
-        +getAssignedFlights(type: String, staff_id: int) mysqli_result
-        +assign(flight_id: int, pilot_id: int, hostess_id: int, staff_id: int) bool
-        +isAssigned(type: String, staff_id: int) bool
-        +deleteStaffAssignment(type: String, staff_id: int) bool
+        -mysqli conn
+        +__construct(mysqli db)
+        +getAssignedFlights(String type, int staff_id) mysqli_result
+        +assign(int flight_id, int pilot_id, int hostess_id, int staff_id) bool
+        +isAssigned(String type, int staff_id) bool
+        +deleteStaffAssignment(String type, int staff_id) bool
     }
 
+    %% Inheritance / Generalization
     User <|-- Admin : Generalization (Inheritance)
     User <|-- Passenger : Generalization (Inheritance)
     User <|-- Pilot : Generalization (Inheritance)
     User <|-- Hostess : Generalization (Inheritance)
     User <|-- AirportStaff : Generalization (Inheritance)
 
-    Passenger "1" -- "*" Booking : Creates
-    Flight "1" -- "*" Booking : Holds
-    Flight "1" -- "0..1" Schedule : Scheduled
+    %% Associations & Dependencies
+    Database ..> User : Provides DB Connection
+    Database ..> Flight : Provides DB Connection
+    Database ..> Booking : Provides DB Connection
+    Database ..> Schedule : Provides DB Connection
+
+    Passenger "1" -- "*" Booking : Creates (1-to-N)
+    Flight "1" -- "*" Booking : Holds (1-to-N)
+    Flight "1" -- "0..1" Schedule : Assigned (1-to-1)
 ```
+
+#### 🛡️ Verification of OOP Architecture Principles:
+1. **Abstraction**: The base `User` class is marked as `abstract` (located in [`api/classes/User.php`](file:///C:/Users/savan_17520ch/Airline/api/classes/User.php)), hiding database query complexity while serving as a contract for sub-user types.
+2. **Inheritance**: `Admin`, `Passenger`, `Pilot`, `Hostess`, and `AirportStaff` extend `User`, inheriting shared authentication (`login()`) and listing (`getAll()`) methods.
+3. **Encapsulation**: All database properties (`$conn`, `$table_name`, `$id_field`) are declared as `protected` (`#`) or `private` (`-`), preventing direct external mutation.
+4. **Polymorphism**: The `login()` method dynamically adapts query logic depending on the child class's `$table_name` property (`email` for Passengers, `username` for Admins, `name` for Crew).
+5. **Autoloading**: All OOP classes are dynamically loaded on demand via [`api/autoload.php`](file:///C:/Users/savan_17520ch/Airline/api/autoload.php) using `spl_autoload_register()`.
 
 ---
 
