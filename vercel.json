@@ -1,38 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.php": {
+    "api/entry.php": {
       "runtime": "vercel-php@0.9.0"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/",
-      "destination": "/api/index.php"
-    },
-    {
-      "source": "/index.php",
-      "destination": "/api/index.php"
-    },
-    {
-      "source": "/admin/:path*",
-      "destination": "/api/admin/:path*"
-    },
-    {
-      "source": "/hostess/:path*",
-      "destination": "/api/hostess/:path*"
-    },
-    {
-      "source": "/pilot/:path*",
-      "destination": "/api/pilot/:path*"
-    },
-    {
-      "source": "/staff/:path*",
-      "destination": "/api/staff/:path*"
-    },
-    {
-      "source": "/user/:path*",
-      "destination": "/api/user/:path*"
+      "src": "/(.*)",
+      "dest": "/api/entry.php"
     }
   ]
 }
