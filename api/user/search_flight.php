@@ -1,5 +1,8 @@
 <?php
 include(__DIR__ . '/../db.php');
+
+// OOP Class Instantiation
+$flightObj = new Flight($conn);
 ?>
 
 <!DOCTYPE html>
@@ -46,17 +49,13 @@ include(__DIR__ . '/../db.php');
 
 <?php
 if(isset($_POST['search'])){
-    $source = mysqli_real_escape_string($conn, $_POST['source']);
-    $destination = mysqli_real_escape_string($conn, $_POST['destination']);
+    $source = $_POST['source'];
+    $destination = $_POST['destination'];
 
-    $result = mysqli_query($conn,
-    "SELECT * FROM flight 
-     WHERE source LIKE '%$source%' 
-     AND destination LIKE '%$destination%'
-     AND available_seats > 0
-     AND status NOT IN ('Cancelled', 'Reached Destination')");
+    // Call OOP Flight class search method
+    $result = $flightObj->search($source, $destination);
 
-    if(mysqli_num_rows($result) > 0){
+    if($result && mysqli_num_rows($result) > 0){
         echo "<h3 style='margin-bottom: 20px; color: var(--text-gold);'>Available Flights</h3>";
         echo "<div class='table-responsive'>";
         echo "<table>";

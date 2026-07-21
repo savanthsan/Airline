@@ -12,23 +12,17 @@ if(!isset($_GET['booking_id'])){
     exit();
 }
 
-$booking_id = mysqli_real_escape_string($conn, $_GET['booking_id']);
-$user_id = mysqli_real_escape_string($conn, $_SESSION['user_id']);
+$booking_id = $_GET['booking_id'];
+$user_id = $_SESSION['user_id'];
 
-$result = mysqli_query($conn,
-"SELECT booking.*, flight.*, passenger.name AS passenger_name
-FROM booking
-JOIN flight ON booking.flight_id = flight.flight_id
-JOIN passenger ON booking.passenger_id = passenger.passenger_id
-WHERE booking.booking_id='$booking_id'
-AND booking.passenger_id='$user_id'");
+// OOP Class Instantiation & Method Execution
+$bookingObj = new Booking($conn);
+$row = $bookingObj->getDetails($booking_id, $user_id);
 
-if(mysqli_num_rows($result) == 0){
+if(!$row){
     echo "Ticket not found!";
     exit();
 }
-
-$row = mysqli_fetch_assoc($result);
 ?>
 
 <!DOCTYPE html>

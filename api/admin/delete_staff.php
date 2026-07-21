@@ -1,199 +1,134 @@
 <?php
-
 session_start();
 include(__DIR__ . '/../db.php');
+
+if(!isset($_SESSION['admin'])){
+    header("Location: admin_login.php");
+    exit();
+}
+
+// OOP Class Instantiations
+$scheduleObj = new Schedule($conn);
+$pilotObj = new Pilot($conn);
+$hostessObj = new Hostess($conn);
+$staffObj = new AirportStaff($conn);
 
 $type = "";
 $result = null;
 $message = "";
 
-// STEP 1: Show staff list
+// STEP 1: Show staff list using OOP methods
 if(isset($_POST['type'])){
+    $type = $_POST['type'];
 
-$type = $_POST['type'];
-
-if($type == "pilot"){
-$result = mysqli_query($conn,"SELECT * FROM pilot");
+    if($type == "pilot"){
+        $result = $pilotObj->getAll();
+    } else if($type == "hostess"){
+        $result = $hostessObj->getAll();
+    } else if($type == "staff"){
+        $result = $staffObj->getAll();
+    }
 }
 
-else if($type == "hostess"){
-$result = mysqli_query($conn,"SELECT * FROM hostess");
-}
-
-else if($type == "staff"){
-$result = mysqli_query($conn,"SELECT * FROM airport_staff");
-}
-
-}
-
-// STEP 2: Delete with safety check
+// STEP 2: Delete with safety check using OOP Schedule class methods
 if(isset($_POST['delete'])){
+    $type = $_POST['type'];
+    $id = $_POST['id'];
 
-$type = $_POST['type'];
-$id = $_POST['id'];
-
-// PILOT
-if($type == "pilot"){
-
-$check = mysqli_query($conn,
-"SELECT * FROM staff_schedule WHERE pilot_id='$id'");
-
-if(mysqli_num_rows($check) > 0){
-
-$message = "❌ Cannot delete: Pilot is assigned to a flight";
-
+    if($scheduleObj->isAssigned($type, $id)){
+        $message = "<p class='error'>❌ Cannot delete: Personnel is currently assigned to an active flight schedule.</p>";
+    } else {
+        $scheduleObj->deleteStaffAssignment($type, $id);
+        $message = "<p class='success'>✅ Personnel deleted successfully.</p>";
+    }
 }
-else{
-
-mysqli_query($conn,
-"DELETE FROM pilot WHERE pilot_id='$id'");
-
-$message = "✅ Pilot deleted successfully";
-
-}
-}
-
-// HOSTESS
-else if($type == "hostess"){
-
-$check = mysqli_query($conn,
-"SELECT * FROM staff_schedule WHERE hostess_id='$id'");
-
-if(mysqli_num_rows($check) > 0){
-
-$message = "❌ Cannot delete: Hostess is assigned to a flight";
-
-}
-else{
-
-mysqli_query($conn,
-"DELETE FROM hostess WHERE hostess_id='$id'");
-
-$message = "✅ Hostess deleted successfully";
-
-}
-}
-
-// GROUND STAFF
-else if($type == "staff"){
-
-$check = mysqli_query($conn,
-"SELECT * FROM staff_schedule WHERE staff_id='$id'");
-
-if(mysqli_num_rows($check) > 0){
-
-$message = "❌ Cannot delete: Staff is assigned to a flight";
-
-}
-else{
-
-mysqli_query($conn,
-"DELETE FROM airport_staff WHERE staff_id='$id'");
-
-$message = "✅ Staff deleted successfully";
-
-}
-}
-
-}
-
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-
-<title>Delete Staff</title>
-
-<link rel="stylesheet" href="../style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Personnel | Airline System</title>
+    <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
 
-<div class="navbar">
-<h2>Delete Staff</h2>
-</div>
+    <div class="navbar">
+        <a href="../index.php" class="navbar-brand">
+            <i class="fa-solid fa-plane-departure"></i>
+            <span>AIRLINE SYSTEM</span>
+        </a>
+        <div class="navbar-tagline">Personnel Management</div>
+    </div>
 
-<div class="container">
+    <div class="container">
 
-<h3>Select Staff Type</h3>
+        <h2>Deactivate Personnel Account</h2>
+        <p style="margin-bottom: 30px;">Remove pilot, cabin crew, or ground staff records (with assignment protection).</p>
 
-<!-- STEP 3: SELECT TYPE -->
+        <div style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 35px; border-radius: 20px; max-width: 650px; margin: 0 auto 40px;">
 
-<form method="POST">
+            <?php echo $message; ?>
 
-<select name="type">
+            <form method="POST" style="margin-bottom: 25px;">
 
-<option value="pilot">Pilot</option>
-<option value="hostess">Hostess</option>
-<option value="staff">Ground Staff</option>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user-gear" style="margin-right: 6px;"></i>Select Personnel Category</label>
+                    <select name="type" required>
+                        <option value="">-- Choose Category --</option>
+                        <option value="pilot" <?php if($type=='pilot') echo 'selected'; ?>>Pilot / Captain</option>
+                        <option value="hostess" <?php if($type=='hostess') echo 'selected'; ?>>Cabin Crew (Hostess)</option>
+                        <option value="staff" <?php if($type=='staff') echo 'selected'; ?>>Ground Operations Staff</option>
+                    </select>
+                </div>
 
-</select>
+                <button type="submit" class="btn btn-gold" style="width: 100%;">
+                    <i class="fa-solid fa-list"></i> Fetch Personnel List
+                </button>
 
-<br><br>
+            </form>
 
-<button name="show">Show</button>
+            <?php if($result && mysqli_num_rows($result) > 0){ ?>
 
-</form>
+                <form method="POST">
 
-<br>
+                    <input type="hidden" name="type" value="<?php echo htmlspecialchars($type); ?>">
 
-<!-- STEP 4: SHOW STAFF LIST -->
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user-minus" style="margin-right: 6px;"></i>Select Staff Member to Remove</label>
+                        <select name="id" required>
+                            <?php while($row = mysqli_fetch_assoc($result)){ 
+                                $idCol = ($type=='pilot') ? 'pilot_id' : (($type=='hostess') ? 'hostess_id' : 'staff_id');
+                            ?>
+                                <option value="<?php echo $row[$idCol]; ?>"><?php echo htmlspecialchars($row['name']); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
 
-<?php if($result){ ?>
+                    <button type="submit" name="delete" class="btn" style="width: 100%; background: var(--primary-red);" onclick="return confirm('Are you sure you want to remove this staff member?');">
+                        <i class="fa-solid fa-trash"></i> Confirm Deletion
+                    </button>
 
-<form method="POST">
+                </form>
 
-<input type="hidden" name="type" value="<?php echo $type; ?>">
+            <?php } elseif(isset($_POST['type'])) { ?>
+                <p class="error" style="margin-top: 15px;">No personnel found in this category.</p>
+            <?php } ?>
 
-<select name="id">
+            <div style="margin-top: 25px;">
+                <a href="admin_dashboard.php" class="back-btn" style="margin-top: 0;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            </div>
 
-<?php
+        </div>
 
-while($row = mysqli_fetch_assoc($result)){
+    </div>
 
-if($type == "pilot"){
-echo "<option value='".$row['pilot_id']."'>".$row['name']."</option>";
-}
-
-else if($type == "hostess"){
-echo "<option value='".$row['hostess_id']."'>".$row['name']."</option>";
-}
-
-else if($type == "staff"){
-echo "<option value='".$row['staff_id']."'>".$row['name']."</option>";
-}
-
-}
-
-?>
-
-</select>
-
-<br><br>
-
-<button name="delete">Delete</button>
-
-</form>
-
-<?php } ?>
-
-<!-- STEP 5: SHOW MESSAGE -->
-
-<?php
-if($message != ""){
-echo "<h3>$message</h3>";
-}
-?>
-
-<br>
-
-<a href="admin_dashboard.php" class="back-btn">⬅ Back to Dashboard</a>
-
-</div>
+    <div class="footer">
+        <p>© 2026 <span>Airline Management System</span>. All rights reserved.</p>
+    </div>
 
 </body>
-
 </html>

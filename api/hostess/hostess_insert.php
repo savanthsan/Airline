@@ -1,14 +1,13 @@
 <?php
-
 include(__DIR__ . '/../db.php');
 
-$name=$_POST['name'];
-$password=$_POST['password'];
+$name = $_POST['name'];
+$password = $_POST['password'];
 
-mysqli_query($conn,
-"INSERT INTO hostess(name,password)
-VALUES('$name','$password')");
+// OOP Class Instantiation & Method Execution
+$hostessObj = new Hostess($conn);
+$hostessObj->add($name, $password);
 
-echo "Hostess Registered";
-
+header("Location: hostess_login.php");
+exit();
 ?>

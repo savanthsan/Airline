@@ -7,14 +7,11 @@ if(!isset($_SESSION['user_id'])){
     exit();
 }
 
-$user_id = mysqli_real_escape_string($conn, $_SESSION['user_id']);
+$user_id = $_SESSION['user_id'];
 
-$result = mysqli_query($conn,
-"SELECT booking.*, flight.* 
-FROM booking
-JOIN flight ON booking.flight_id = flight.flight_id
-WHERE booking.passenger_id='$user_id'
-ORDER BY booking.booking_id DESC");
+// OOP Class Instantiation & Method Execution
+$bookingObj = new Booking($conn);
+$result = $bookingObj->getByPassenger($user_id);
 ?>
 
 <!DOCTYPE html>
@@ -58,7 +55,7 @@ ORDER BY booking.booking_id DESC");
             </thead>
             <tbody>
             <?php
-            if(mysqli_num_rows($result) > 0){
+            if($result && mysqli_num_rows($result) > 0){
                 while($row = mysqli_fetch_assoc($result)){
             ?>
                 <tr>

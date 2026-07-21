@@ -1,15 +1,13 @@
 <?php
-
 include(__DIR__ . '/../db.php');
 
-$name=$_POST['name'];
-$password=$_POST['password'];
+$name = $_POST['name'];
+$password = $_POST['password'];
 
-mysqli_query($conn,
+// OOP Class Instantiation
+$pilotObj = new Pilot($conn);
+$pilotObj->add($name, $password);
 
-"INSERT INTO pilot(name,password)
-VALUES('$name','$password')");
-
-header("Location:view_pilots.php");
-
+header("Location: view_pilots.php");
+exit();
 ?>

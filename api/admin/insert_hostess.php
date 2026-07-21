@@ -1,15 +1,13 @@
 <?php
-
 include(__DIR__ . '/../db.php');
 
-$name=$_POST['name'];
-$password=$_POST['password'];
+$name = $_POST['name'];
+$password = $_POST['password'];
 
-mysqli_query($conn,
+// OOP Class Instantiation
+$hostessObj = new Hostess($conn);
+$hostessObj->add($name, $password);
 
-"INSERT INTO hostess(name,password)
-VALUES('$name','$password')");
-
-header("Location:view_hostess.php");
-
+header("Location: view_hostess.php");
+exit();
 ?>

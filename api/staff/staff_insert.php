@@ -1,14 +1,13 @@
 <?php
-
 include(__DIR__ . '/../db.php');
 
-$name=$_POST['name'];
-$password=$_POST['password'];
+$name = $_POST['name'];
+$password = $_POST['password'];
 
-mysqli_query($conn,
-"INSERT INTO airport_staff(name,password)
-VALUES('$name','$password')");
+// OOP Class Instantiation & Method Execution
+$staffObj = new AirportStaff($conn);
+$staffObj->add($name, $password);
 
-echo "Staff Registered";
-
+header("Location: staff_login.php");
+exit();
 ?>

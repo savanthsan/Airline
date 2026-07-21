@@ -1,6 +1,9 @@
 <?php
 include(__DIR__ . '/../db.php');
-$result = mysqli_query($conn,"SELECT * FROM flight ORDER BY flight_id DESC");
+
+// OOP Class Instantiation & Method Execution
+$flightObj = new Flight($conn);
+$result = $flightObj->getAll();
 ?>
 
 <!DOCTYPE html>
@@ -9,7 +12,7 @@ $result = mysqli_query($conn,"SELECT * FROM flight ORDER BY flight_id DESC");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet Overview | Airline Management System</title>
+    <title>Fleet Overview | Airline System</title>
     <link rel="stylesheet" href="../style.css">
 </head>
 
@@ -42,7 +45,7 @@ $result = mysqli_query($conn,"SELECT * FROM flight ORDER BY flight_id DESC");
                 </thead>
                 <tbody>
                 <?php
-                if(mysqli_num_rows($result) > 0){
+                if($result && mysqli_num_rows($result) > 0){
                     while($row=mysqli_fetch_assoc($result)){
                         echo "<tr>";
                         echo "<td><strong style='color: var(--text-gold);'><i class='fa-solid fa-plane' style='margin-right: 6px;'></i>".htmlspecialchars($row['flight_no'])."</strong></td>";
