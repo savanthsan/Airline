@@ -102,7 +102,7 @@ graph LR
 ---
 
 ### 2. Class Diagram
-Illustrates the structural inheritance, encapsulation, and relationships of the object-oriented design. Each class is represented in a distinct, self-contained box detailing its attributes (access modifiers & types) and functionalities (methods & parameters).
+Illustrates the structural inheritance, encapsulation, and complete entity attributes (including Primary Keys: `admin_id`, `passenger_id`, `pilot_id`, `hostess_id`, `staff_id`, `flight_id`, `booking_id`, `schedule_id`). Each class is represented in a distinct, self-contained box detailing its attributes (access modifiers & types) and functionalities (methods & parameters).
 
 ```mermaid
 classDiagram
@@ -123,38 +123,84 @@ classDiagram
         #mysqli conn
         #String table_name
         #String id_field
+        #int user_id
+        #String name
+        #String password
         +__construct(mysqli db)
+        +getId() int
+        +getName() String
         +login(String identifier, String password) Array|false
         +getAll() mysqli_result
     }
 
     class Admin {
+        -int admin_id
+        -String username
+        -String password
         +__construct(mysqli db)
+        +getAdminId() int
+        +getUsername() String
     }
 
     class Passenger {
+        -int passenger_id
+        -String name
+        -String email
+        -String password
         +__construct(mysqli db)
+        +getPassengerId() int
+        +getEmail() String
         +register(String name, String email, String password) bool
     }
 
     class Pilot {
+        -int pilot_id
+        -String name
+        -String password
         +__construct(mysqli db)
+        +getPilotId() int
         +add(String name, String password) bool
     }
 
     class Hostess {
+        -int hostess_id
+        -String name
+        -String password
         +__construct(mysqli db)
+        +getHostessId() int
         +add(String name, String password) bool
     }
 
     class AirportStaff {
+        -int staff_id
+        -String name
+        -String password
         +__construct(mysqli db)
+        +getStaffId() int
         +add(String name, String password) bool
     }
 
     class Flight {
         -mysqli conn
+        -int flight_id
+        -String flight_no
+        -String source
+        -String destination
+        -Time departure_time
+        -Time arrival_time
+        -int total_seats
+        -int available_seats
+        -String status
         +__construct(mysqli db)
+        +getFlightId() int
+        +getFlightNo() String
+        +getSource() String
+        +getDestination() String
+        +getDepartureTime() Time
+        +getArrivalTime() Time
+        +getTotalSeats() int
+        +getAvailableSeats() int
+        +getStatus() String
         +getAll() mysqli_result
         +search(String source, String destination) mysqli_result
         +getById(int flight_id) Array
@@ -165,7 +211,17 @@ classDiagram
 
     class Booking {
         -mysqli conn
+        -int booking_id
+        -int passenger_id
+        -int flight_id
+        -String booking_code
+        -String seat_no
         +__construct(mysqli db)
+        +getBookingId() int
+        +getPassengerId() int
+        +getFlightId() int
+        +getBookingCode() String
+        +getSeatNo() String
         +getByPassenger(int passenger_id) mysqli_result
         +getDetails(int booking_id, int passenger_id) Array
         +book(int passenger_id, int flight_id, String booking_code, String seat_no) bool
@@ -174,7 +230,17 @@ classDiagram
 
     class Schedule {
         -mysqli conn
+        -int schedule_id
+        -int flight_id
+        -int pilot_id
+        -int hostess_id
+        -int staff_id
         +__construct(mysqli db)
+        +getScheduleId() int
+        +getFlightId() int
+        +getPilotId() int
+        +getHostessId() int
+        +getStaffId() int
         +getAssignedFlights(String type, int staff_id) mysqli_result
         +assign(int flight_id, int pilot_id, int hostess_id, int staff_id) bool
         +isAssigned(String type, int staff_id) bool

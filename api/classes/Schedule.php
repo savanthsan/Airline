@@ -1,10 +1,21 @@
 <?php
 class Schedule {
     private $conn;
+    private $schedule_id;
+    private $flight_id;
+    private $pilot_id;
+    private $hostess_id;
+    private $staff_id;
 
     public function __construct($db) {
         $this->conn = $db;
     }
+
+    public function getScheduleId() { return $this->schedule_id; }
+    public function getFlightId() { return $this->flight_id; }
+    public function getPilotId() { return $this->pilot_id; }
+    public function getHostessId() { return $this->hostess_id; }
+    public function getStaffId() { return $this->staff_id; }
 
     public function getAssignedFlights($type, $staff_id) {
         $staff_id = mysqli_real_escape_string($this->conn, $staff_id);
