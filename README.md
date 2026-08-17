@@ -332,6 +332,32 @@ sequenceDiagram
     *   *Condition*: If the database query does not return any matching records (wrong credentials).
     *   *Alternative Flow*: The system displays a "Login Failed" error message and prompts the user to try again.
 
+#### 📊 Sequence Diagram: UC1 - User Login & Authentication
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: User Authentication & Role Login (UC1)
+    actor User as User (Passenger/Admin/Crew)
+    participant UI as login.php (View)
+    participant UC as User Subclass (Model)
+    participant DB as MySQL Database
+
+    User ->> UI: Submit Login Form (Identifier, Password)
+    UI ->> UC: new UserSubclass(conn)
+    UI ->> UC: login(identifier, password)
+    UC ->> DB: SELECT * FROM role_table WHERE username/email = ? AND password = ?
+    DB -->> UC: Return User Record / Empty Result
+
+    alt Valid Credentials
+        UC -->> UI: Return User Array
+        UI ->> UI: Set $_SESSION['user_id'] & Role
+        UI -->> User: Redirect to Role Dashboard
+    else Invalid Credentials
+        UC -->> UI: Return false
+        UI -->> User: Display "Invalid Username or Password"
+    end
+```
+
 ---
 
 ### UC2: Search Flights
@@ -350,6 +376,31 @@ sequenceDiagram
 *   **Alternative Flow**:
     *   *Condition*: If no flights match the searched criteria.
     *   *Alternative Flow*: The system displays a message stating "No flights found".
+
+#### 📊 Sequence Diagram: UC2 - Search Flights
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Passenger Flight Search (UC2)
+    actor Passenger as Passenger (Browser)
+    participant UI as index.php (View)
+    participant F as Flight Class (Model)
+    participant DB as MySQL Database
+
+    Passenger ->> UI: Input Source & Destination, Click "Search Flights"
+    UI ->> F: new Flight(conn)
+    UI ->> F: search(source, destination)
+    F ->> DB: SELECT * FROM flight WHERE source=? AND destination=?
+    DB -->> F: Return Matching Flight Rows
+
+    alt Flights Available
+        F -->> UI: Return mysqli_result
+        UI -->> Passenger: Display Flight List & Available Seats
+    else No Matching Flights
+        F -->> UI: Return Empty Result
+        UI -->> Passenger: Display "No Flights Available for Selected Route"
+    end
+```
 
 ---
 
@@ -371,6 +422,41 @@ sequenceDiagram
     *   *Condition*: If the flight capacity is full (`available_seats` <= 0), or if the flight status is "Cancelled" or "Reached Destination".
     *   *Alternative Flow*: The system alerts the passenger that booking is not possible and redirects them back to the search page.
 
+#### 📊 Sequence Diagram: UC3 - Flight Booking Operation
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Passenger Ticket Booking (UC3)
+    actor Passenger as Passenger (Browser)
+    participant UI as book_flight.php (View)
+    participant F as Flight Class (Model)
+    participant B as Booking Class (Model)
+    participant DB as MySQL Database
+
+    Passenger ->> UI: Click "Book Ticket" (flight_id)
+    UI ->> F: new Flight(conn)
+    UI ->> F: getById(flight_id)
+    F ->> DB: SELECT * FROM flight WHERE flight_id=?
+    DB -->> F: Return Flight Data
+    F -->> UI: Return Flight Details (available_seats, status)
+
+    alt Available Seats > 0 AND Status == 'On Time'
+        UI ->> UI: Generate Booking Code & Seat Number
+        UI ->> B: new Booking(conn)
+        UI ->> B: book(passenger_id, flight_id, booking_code, seat_no)
+        B ->> DB: INSERT INTO booking (...)
+        DB -->> B: Insert Success
+
+        UI ->> F: updateSeats(flight_id, -1)
+        F ->> DB: UPDATE flight SET available_seats = available_seats - 1
+        DB -->> F: Update Success
+
+        UI -->> Passenger: Redirect to my_bookings.php with Success Alert
+    else Seats == 0 OR Flight Inactive
+        UI -->> Passenger: Alert "Booking Unavailable / Flight Full"
+    end
+```
+
 ---
 
 ### UC4: Cancel Ticket
@@ -390,6 +476,33 @@ sequenceDiagram
     *   *Condition*: If the flight status is already "Cancelled" or "Reached Destination".
     *   *Alternative Flow*: The cancel action is disabled on the UI, displaying "Reimbursement Pending" or "Completed" instead.
 
+#### 📊 Sequence Diagram: UC4 - Ticket Cancellation
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Passenger Ticket Cancellation (UC4)
+    actor Passenger as Passenger (Browser)
+    participant UI as cancel_booking.php (View)
+    participant B as Booking Class (Model)
+    participant F as Flight Class (Model)
+    participant DB as MySQL Database
+
+    Passenger ->> UI: Click "Cancel Ticket" (booking_id, flight_id)
+    UI ->> B: new Booking(conn)
+    UI ->> B: cancel(booking_id, passenger_id)
+    B ->> DB: DELETE FROM booking WHERE booking_id=? AND passenger_id=?
+    DB -->> B: Deletion Successful
+    B -->> UI: Return true
+
+    UI ->> F: new Flight(conn)
+    UI ->> F: updateSeats(flight_id, +1)
+    F ->> DB: UPDATE flight SET available_seats = available_seats + 1
+    DB -->> F: Update Successful
+    F -->> UI: Return true
+
+    UI -->> Passenger: Refresh Dashboard with "Booking Cancelled" Confirmation
+```
+
 ---
 
 ### UC5: View Assigned Schedule
@@ -407,6 +520,31 @@ sequenceDiagram
 *   **Alternative Flow**:
     *   *Condition*: If the crew member has no assigned flights in the schedule.
     *   *Alternative Flow*: The system displays an empty table stating no schedules are currently assigned.
+
+#### 📊 Sequence Diagram: UC5 - Crew View Assigned Schedule (Pilot / Hostess / Ground Staff)
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Crew Duty Roster & Schedule View (UC5)
+    actor Crew as Crew Member (Pilot / Hostess / Ground Staff)
+    participant UI as crew_dashboard.php (View)
+    participant S as Schedule Class (Model)
+    participant DB as MySQL Database
+
+    Crew ->> UI: Access Personalized Dashboard
+    UI ->> S: new Schedule(conn)
+    UI ->> S: getAssignedFlights(role_type, staff_id)
+    S ->> DB: SELECT * FROM staff_schedule JOIN flight WHERE role_id = staff_id
+    DB -->> S: Return Assigned Flight & Schedule Rows
+
+    alt Schedules Found
+        S -->> UI: Return mysqli_result
+        UI -->> Crew: Render Flight Duty Roster (Times, Route, Status)
+    else No Assigned Flights
+        S -->> UI: Return Empty Result
+        UI -->> Crew: Display "No Active Flight Assignments" Message
+    end
+```
 
 ---
 
@@ -426,6 +564,31 @@ sequenceDiagram
 *   **Alternative Flow**:
     *   *Condition*: If the database insertion fails (e.g., duplicate flight number).
     *   *Alternative Flow*: The system displays a "Failed to add flight" error message.
+
+#### 📊 Sequence Diagram: UC6 - Admin Flight Creation
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Admin Add Flight Route (UC6)
+    actor Admin as System Administrator
+    participant UI as add_flight.php (View)
+    participant F as Flight Class (Model)
+    participant DB as MySQL Database
+
+    Admin ->> UI: Fill Flight Details (Flight No, Source, Dest, Times, Seats), Click "Add Flight"
+    UI ->> F: new Flight(conn)
+    UI ->> F: add(flight_no, source, destination, dep_time, arr_time, total_seats)
+    F ->> DB: INSERT INTO flight (flight_no, source, destination, dep_time, arr_time, total_seats, available_seats, status)
+    DB -->> F: Return Query Success / Failure
+
+    alt Insertion Success
+        F -->> UI: Return true
+        UI -->> Admin: Display "Flight Added Successfully"
+    else Query Failed / Duplicate Flight Number
+        F -->> UI: Return false
+        UI -->> Admin: Display Error "Failed to Add Flight"
+    end
+```
 
 ---
 
@@ -447,6 +610,31 @@ sequenceDiagram
     *   *Condition*: If the database query fails.
     *   *Alternative Flow*: The system displays a "Failed to assign staff" error message.
 
+#### 📊 Sequence Diagram: UC7 - Admin Crew Assignment
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Admin Assign Crew & Staff Schedule (UC7)
+    actor Admin as System Administrator
+    participant UI as assign_staff.php (View)
+    participant S as Schedule Class (Model)
+    participant DB as MySQL Database
+
+    Admin ->> UI: Select Flight, Pilot, Hostess, & Ground Staff IDs -> Submit
+    UI ->> S: new Schedule(conn)
+    UI ->> S: assign(flight_id, pilot_id, hostess_id, staff_id)
+    S ->> DB: INSERT / REPLACE INTO staff_schedule (flight_id, pilot_id, hostess_id, staff_id)
+    DB -->> S: Return Operation Result
+
+    alt Assignment Success
+        S -->> UI: Return true
+        UI -->> Admin: Display "Crew Successfully Assigned to Flight"
+    else Database Error
+        S -->> UI: Return false
+        UI -->> Admin: Display "Assignment Failed" Alert
+    end
+```
+
 ---
 
 ### UC8: Update Flight Status
@@ -466,6 +654,31 @@ sequenceDiagram
     *   *Condition*: If the update query fails.
     *   *Alternative Flow*: The system displays a failure message.
 
+#### 📊 Sequence Diagram: UC8 - Update Flight Status
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Admin Update Flight Status (UC8)
+    actor Admin as System Administrator
+    participant UI as update_status.php (View)
+    participant F as Flight Class (Model)
+    participant DB as MySQL Database
+
+    Admin ->> UI: Select Flight & New Status (On Time / Delayed / Cancelled / Reached)
+    UI ->> F: new Flight(conn)
+    UI ->> F: updateStatus(flight_id, status)
+    F ->> DB: UPDATE flight SET status = ? WHERE flight_id = ?
+    DB -->> F: Return Update Success
+
+    alt Status Updated
+        F -->> UI: Return true
+        UI -->> Admin: Display "Flight Status Updated Successfully"
+    else Update Error
+        F -->> UI: Return false
+        UI -->> Admin: Display "Failed to Update Flight Status"
+    end
+```
+
 ---
 
 ### UC9: Add / Delete Staff
@@ -484,6 +697,45 @@ sequenceDiagram
 *   **Alternative Flow**:
     *   *Condition*: If the admin attempts to delete a staff member who is currently assigned to a flight.
     *   *Alternative Flow*: The system blocks the deletion and displays the message "Cannot delete: Staff is assigned to a flight".
+
+#### 📊 Sequence Diagram: UC9 - Admin Add / Delete Staff Member
+```mermaid
+sequenceDiagram
+    autonumber
+    title Sequence Diagram: Admin Staff Onboarding & Deletion (UC9)
+    actor Admin as System Administrator
+    participant UI as manage_staff.php (View)
+    participant SC as Staff Subclass (Pilot/Hostess/AirportStaff Model)
+    participant S as Schedule Class (Model)
+    participant DB as MySQL Database
+
+    alt Action: Add Staff
+        Admin ->> UI: Submit Staff Details (Name, Role, Password)
+        UI ->> SC: new StaffSubclass(conn)
+        UI ->> SC: add(name, password)
+        SC ->> DB: INSERT INTO role_table (name, password)
+        DB -->> SC: Return Success
+        SC -->> UI: Return true
+        UI -->> Admin: Display "Staff Member Onboarded Successfully"
+    else Action: Delete Staff
+        Admin ->> UI: Click Delete Staff Member (role, staff_id)
+        UI ->> S: new Schedule(conn)
+        UI ->> S: isAssigned(role, staff_id)
+        S ->> DB: SELECT COUNT(*) FROM staff_schedule WHERE role_id = staff_id
+        DB -->> S: Return Assignment Count
+
+        alt Not Assigned (Count == 0)
+            S -->> UI: Return false (Safe to Delete)
+            UI ->> SC: deleteStaff(staff_id)
+            SC ->> DB: DELETE FROM role_table WHERE id = staff_id
+            DB -->> SC: Return Success
+            UI -->> Admin: Display "Staff Member Deleted"
+        else Assigned to Active Flight (Count > 0)
+            S -->> UI: Return true (Assigned)
+            UI -->> Admin: Block Deletion & Display "Cannot Delete: Staff Assigned to Flight"
+        end
+    end
+```
 
 ---
 
