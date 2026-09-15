@@ -9,6 +9,18 @@ class Database {
     private $conn;
 
     public function __construct() {
+        $envFile = __DIR__ . '/../../.env';
+        if (file_exists($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                if (strpos(trim($line), '#') === 0) continue;
+                $parts = explode('=', $line, 2);
+                if (count($parts) === 2 && getenv(trim($parts[0])) === false) {
+                    putenv(trim($parts[0]) . '=' . trim($parts[1], " \t\n\r\0\x0B\"'"));
+                }
+            }
+        }
+
         $this->host = getenv('DB_HOST') ?: "localhost";
         $this->user = getenv('DB_USER') ?: "root";
         $this->pass = getenv('DB_PASSWORD') ?: "";
