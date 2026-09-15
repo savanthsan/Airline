@@ -111,10 +111,11 @@ foreach ($tables as $name => $query) {
 }
 
 // 3. Seed Admin
-mysqli_query($conn, "INSERT INTO `admin` (`username`, `password`) VALUES ('admin', 'admin123') ON DUPLICATE KEY UPDATE `username`=`username`");
+mysqli_query($conn, "INSERT INTO `admin` (`username`, `password`) VALUES ('savanthsan', 'admin123') ON DUPLICATE KEY UPDATE `username`=`username`");
 
 // 4. Seed Passengers
 $passengers = [
+    ['savanthsan', 'savanthsan@gmail.com', 'password123'],
     ['John Doe', 'john@example.com', 'john123'],
     ['Sarah Connor', 'sarah@example.com', 'sarah123'],
     ['Alex Mercer', 'alex@example.com', 'alex123'],

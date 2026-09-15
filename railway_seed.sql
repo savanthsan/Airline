@@ -76,11 +76,12 @@ CREATE TABLE IF NOT EXISTS `staff_schedule` (
 -- ===== SAMPLE DATA INSERTIONS =====
 
 -- Admin
-INSERT INTO `admin` (`username`, `password`) VALUES ('admin', 'admin123')
+INSERT INTO `admin` (`username`, `password`) VALUES ('savanthsan', 'admin123')
 ON DUPLICATE KEY UPDATE `username`=`username`;
 
 -- Passengers
 INSERT INTO `passenger` (`name`, `email`, `password`) VALUES
+('savanthsan', 'savanthsan@gmail.com', 'password123'),
 ('John Doe', 'john@example.com', 'john123'),
 ('Sarah Connor', 'sarah@example.com', 'sarah123'),
 ('Alex Mercer', 'alex@example.com', 'alex123'),

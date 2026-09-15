@@ -76,5 +76,5 @@ CREATE TABLE IF NOT EXISTS `staff_schedule` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Insert default admin
-INSERT INTO `admin` (`username`, `password`) VALUES ('admin', 'admin123')
+INSERT INTO `admin` (`username`, `password`) VALUES ('savanthsan', 'admin123')
 ON DUPLICATE KEY UPDATE `username`=`username`;
