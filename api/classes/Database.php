@@ -27,6 +27,9 @@ class Database {
             $this->conn->ssl_set(NULL, NULL, $this->ssl_ca, NULL, NULL);
             $this->conn->options(MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, true);
             $success = $this->conn->real_connect($this->host, $this->user, $this->pass, $this->name, $this->port, NULL, MYSQLI_CLIENT_SSL);
+        } elseif (getenv('DB_SSL') === 'true' || $this->port == '4000') {
+            $this->conn->ssl_set(NULL, NULL, NULL, NULL, NULL);
+            $success = $this->conn->real_connect($this->host, $this->user, $this->pass, $this->name, $this->port, NULL, MYSQLI_CLIENT_SSL);
         } else {
             $success = $this->conn->real_connect($this->host, $this->user, $this->pass, $this->name, $this->port);
         }

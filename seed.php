@@ -8,23 +8,31 @@ $dbname = getenv('DB_NAME') ?: "airline_db";
 
 echo "Connecting to MySQL server at $host:$port...\n";
 
-$conn = @mysqli_connect($host, $user, $pass, "", $port);
+$conn = mysqli_init();
+if ($port == '4000' || getenv('DB_SSL') === 'true') {
+    $conn->ssl_set(NULL, NULL, NULL, NULL, NULL);
+    $connected = @$conn->real_connect($host, $user, $pass, $dbname, $port, NULL, MYSQLI_CLIENT_SSL);
+} else {
+    // Try connecting directly to dbname first (common for cloud DBs)
+    $connected = @$conn->real_connect($host, $user, $pass, $dbname, $port);
+    if (!$connected) {
+        // Fallback: connect to server root and create DB (for local MySQL / XAMPP)
+        $conn_root = @mysqli_connect($host, $user, $pass, "", $port);
+        if ($conn_root) {
+            mysqli_query($conn_root, "CREATE DATABASE IF NOT EXISTS `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+            mysqli_close($conn_root);
+            $connected = @$conn->real_connect($host, $user, $pass, $dbname, $port);
+        }
+    }
+}
 
-if (!$conn) {
-    echo "ERROR: Unable to connect to MySQL: " . mysqli_connect_error() . "\n";
-    echo "Please make sure your MySQL server (XAMPP / WAMP / MySQL Service) is running!\n";
+if (!$connected) {
+    echo "ERROR: Unable to connect to MySQL ($host:$port): " . mysqli_connect_error() . "\n";
+    echo "Please check your credentials or make sure your database server is running!\n";
     exit(1);
 }
 
-// 1. Create database
-$sql = "CREATE DATABASE IF NOT EXISTS `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
-if (mysqli_query($conn, $sql)) {
-    echo "Database '$dbname' ensured successfully.\n";
-} else {
-    echo "Error creating database: " . mysqli_error($conn) . "\n";
-}
-
-mysqli_select_db($conn, $dbname);
+echo "Connected successfully to '$dbname' on $host:$port.\n";
 
 // 2. Create Tables
 $tables = [
